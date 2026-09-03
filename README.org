@@ -104,15 +104,18 @@ The rules are checked in [[file:test/complexity-test.el][test/complexity-test.el
 
 ** Development
 
-| Target     | What it does                        |
-|------------+-------------------------------------|
-| =compile=  | byte-compile, warnings are errors   |
-| =checkdoc= | documentation style                 |
-| =test=     | ERT suite over the rules            |
-| =hook=     | the tool over its own Lisp          |
-| =clean=    | remove build output                 |
+| Target     | What it does                                      |
+|------------+---------------------------------------------------|
+| =compile=  | byte-compile, warnings are errors                 |
+| =checkdoc= | documentation style                               |
+| =relint=   | the regular expressions and the docstring escapes |
+| =test=     | ERT suite over the rules                          |
+| =hook=     | the tool over its own Lisp                        |
+| =format=   | indent every Lisp file in place                   |
+| =clean=    | remove build output and the tool sandbox          |
 
-Plain =make= runs them in that order, exactly as the CI does.
+Plain =make= runs the first five in that order, exactly as the CI
+does; =format= is not one of them, because it writes.
 
 ** License
 
