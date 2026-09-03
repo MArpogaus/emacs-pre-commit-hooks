@@ -111,6 +111,67 @@
   (should (= 0 (complexity-test--score
                 '(defun f () "Doc." (list #'if-let* 'when))))))
 
+(ert-deftest complexity-test-a-function-quoted-lambda-is-a-lambda ()
+  "The reader sees one lambda whichever way it is written."
+  (let ((bare (complexity-test--score
+               '(defun f (x) "Doc." (mapcar (lambda (y) (if y 1 2)) x)))))
+    (should (= 3 bare))
+    (should (= bare (complexity-test--score
+                     '(defun f (x) "Doc."
+                        (mapcar #'(lambda (y) (if y 1 2)) x)))))
+    (should (= bare (complexity-test--score
+                     '(defun f (x) "Doc."
+                        (mapcar (cl-function (lambda (y) (if y 1 2)))
+                                x)))))))
+
+(ert-deftest complexity-test-a-pattern-is-not-a-question ()
+  "`or\=', `and\=' and a backquote in a `pcase\=' pattern cost nothing."
+  (let ((literal (complexity-test--score
+                  '(defun f (x) "Doc." (pcase x ('a 1) (_ 2))))))
+    (should (= 2 literal))
+    (should (= literal (complexity-test--score
+                        '(defun f (x) "Doc."
+                           (pcase x ((or 'a 'b) 1) (_ 2))))))
+    (should (= literal (complexity-test--score
+                        '(defun f (x) "Doc."
+                           (pcase x ((and s (guard (stringp s))) 1)
+                             (_ 2))))))
+    (should (= literal (complexity-test--score
+                        '(defun f (x) "Doc."
+                           (pcase x (`(a . ,rest) rest) (_ 2)))))))
+  ;; A `cond\=' clause is code, and its car is the question itself.
+  (should (= 3 (complexity-test--score
+                '(defun f (x) "Doc." (cond ((or x 1) 1) (t 2)))))))
+
+(ert-deftest complexity-test-a-binding-branch-costs-what-its-plain-form-does ()
+  "A `when-let\=' is a `when\=', and a `while-let\=' is a loop."
+  (should (= (complexity-test--score
+              '(defun f (x) "Doc." (when x (g x) (h x))))
+             (complexity-test--score
+              '(defun f (x) "Doc." (when-let ((y x)) (g y) (h y))))))
+  (should (= 1 (complexity-test--score
+                '(defun f (x) "Doc." (and-let* ((y x)) (g y) (h y))))))
+  (should (= (complexity-test--score
+              '(defun f (x) "Doc." (while (f x) (g x))))
+             (complexity-test--score
+              '(defun f (x) "Doc." (while-let ((y (f x))) (g y))))))
+  ;; An `if-let\=' keeps its else.
+  (should (= 2 (complexity-test--score
+                '(defun f (x) "Doc." (if-let ((y x)) (g y) (h x)))))))
+
+(ert-deftest complexity-test-a-loop-keyword-is-a-question ()
+  "`cl-loop\=' costs what the same loop written out costs."
+  (should (= (complexity-test--score
+              '(defun f (xs) "Doc."
+                 (dolist (x xs) (if (p x) (collect x) (collect (g x))))))
+             (complexity-test--score
+              '(defun f (xs) "Doc."
+                 (cl-loop for x in xs
+                          if (p x) collect x
+                          else collect (g x))))))
+  (should (= 1 (complexity-test--score
+                '(defun f (xs) "Doc." (cl-loop for x in xs collect x))))))
+
 (ert-deftest complexity-test-a-file-is-read-and-counted ()
   "Every definition of a file is found, with its lines told apart."
   (let* ((file (make-temp-file "complexity" nil ".el"))

@@ -63,10 +63,11 @@
 (require 'subr-x)
 
 (defconst complexity-branching
-  '((if . if) (if-let . if) (if-let* . if) (when-let . if) (when-let* . if)
-    (and-let* . if) (while-let . if)
+  '((if . if) (if-let . if) (if-let* . if)
     (when . plain) (unless . plain)
-    (while . loop) (dolist . loop) (dotimes . loop) (cl-loop . loop)
+    (when-let . plain) (when-let* . plain) (and-let* . plain)
+    (while . loop) (while-let . loop) (dolist . loop) (dotimes . loop)
+    (cl-loop . loop)
     (cl-dolist . loop) (cl-dotimes . loop) (seq-doseq . loop)
     (pcase-dolist . loop) (dolist-with-progress-reporter . loop)
     (cl-do . loop) (cl-do* . loop)
@@ -76,7 +77,7 @@
     (ignore-errors . plain)
     (and . run) (or . run)
     (throw . jump) (cl-return . jump) (cl-return-from . jump)
-    (lambda . body) (cl-function . body)
+    (lambda . body)
     (cl-flet . nested) (cl-flet* . nested) (cl-labels . nested))
   "What each form costs, by the kind of break in the flow it is.
 `if' takes one more for an else, `clauses' one for each clause after the
@@ -113,9 +114,22 @@ same operator however long it is, and `jump' one without the nesting.")
   (complexity--walk (nth 1 form) nest)
   (complexity--walk-all (nthcdr 2 form) (1+ nest)))
 
+(defconst complexity-loop-keywords
+  '(if when unless while until thereis always never)
+  "The `cl-loop\=' keywords that are a question, `else\=' apart.")
+
 (defun complexity--walk-loop (form nest)
-  "Score the looping FORM, which sits NEST levels deep."
+  "Score the looping FORM, which sits NEST levels deep.
+`cl-loop\=' says its branches in keywords, which read as bare symbols
+and would otherwise cost nothing: each one costs what the same question
+in the body costs, and `else\=' what an else costs."
   (complexity--add 1 nest)
+  (when (eq (car form) 'cl-loop)
+    (complexity--add (seq-count (lambda (x)
+                                  (memq x complexity-loop-keywords))
+                                (cdr form))
+                     (1+ nest))
+    (complexity--add (seq-count (lambda (x) (eq x 'else)) (cdr form)) 0))
   (complexity--walk-all (cdr form) (1+ nest)))
 
 (defun complexity--walk-clauses (form head nest)
@@ -124,8 +138,13 @@ Every clause after the first is another way through."
   (complexity--add 1 nest)
   (let ((clauses (if (eq head 'cond) (cdr form) (nthcdr 2 form))))
     (complexity--add (max 0 (1- (safe-length clauses))) 0)
-    (unless (eq head 'cond) (complexity--walk (nth 1 form) nest))
-    (complexity--walk-all clauses (1+ nest))))
+    (if (eq head 'cond)
+        (complexity--walk-all clauses (1+ nest))
+      (complexity--walk (nth 1 form) nest)
+      ;; The car of a clause is a pattern, and `or\=', `and\=' and a
+      ;; backquote in a pattern are not the questions of the same name.
+      (dolist (clause clauses)
+        (complexity--walk-all (cdr-safe clause) (1+ nest))))))
 
 (defun complexity--walk-handlers (form nest)
   "Score the handler FORM, which sits NEST levels deep.
@@ -167,7 +186,7 @@ does.  Every kind of form has its own function; this one says which."
            (kind (and (symbolp head)
                       (cdr (assq head complexity-branching)))))
       (pcase kind
-        ((guard (memq head '(quote function declare))) nil)
+        ((guard (memq head '(quote declare))) nil)
         ('if (complexity--walk-if form nest))
         ('plain (complexity--walk-plain form nest))
         ('loop (complexity--walk-loop form nest))
