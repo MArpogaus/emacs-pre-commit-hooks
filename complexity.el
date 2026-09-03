@@ -28,9 +28,9 @@
 ;;     bin/elisp-complexity --report FILE...
 ;;     bin/elisp-complexity --max 20 FILE...
 ;;
-;; `complexity-gate' is what the hook calls: it prints nothing where
+;; `complexity-gate\=' is what the hook calls: it prints nothing where
 ;; every function is at or under the gate, and exits with 1 where one is
-;; over.  `complexity-report' prints the table whatever the scores are.
+;; over.  `--report\=' prints the table whatever the scores are.
 ;;
 ;; It scores every function by *cognitive complexity*: how much of it a
 ;; reader has to hold in their head at once.  The rules are those of the
@@ -258,15 +258,6 @@ deal."
                             (complexity-of form))
                     found)))))
       (nreverse found))))
-
-(defun complexity-report (files)
-  "Print what every function of FILES costs a reader, the dearest first."
-  ;; Not the keyword form of `sort', which is Emacs 30: this tool
-  ;; declares 29.1 and runs there.
-  (complexity--print (sort (mapcan #'complexity-file files)
-                           (lambda (a b) (> (plist-get a :score)
-                                            (plist-get b :score))))
-                     15))
 
 (defun complexity--print (all max)
   "Print the table of ALL, and say which functions cost more than MAX."
