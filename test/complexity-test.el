@@ -1,10 +1,10 @@
-;;; complexity-test.el --- Tests for tools/complexity.el -*- lexical-binding: t; -*-
+;;; complexity-test.el --- Tests for complexity.el -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2026 Marcel Arpogaus
 
 ;; Author: Marcel Arpogaus <znepry.necbtnhf@tznvy.pbz>
 ;; Assisted-by: Claude:claude-opus-5
-;; URL: https://github.com/MArpogaus/pycell
+;; URL: https://github.com/MArpogaus/elisp-complexity
 
 ;; This file is not part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 
 ;; Run with: make test
 ;;
-;; What the measure of `make complexity' counts, rule by rule.  A
+;; What the measure of `make hook' counts, rule by rule.  A
 ;; measure nobody checks is a number nobody can argue with.
 
 ;;; Code:
@@ -125,7 +125,7 @@
                                      x)))))))
 
 (ert-deftest complexity-test-a-pattern-is-not-a-question ()
-  "`or\=', `and\=' and a backquote in a `pcase\=' pattern cost nothing."
+  "`or', `and' and a backquote in a `pcase' pattern cost nothing."
   (let ((literal (complexity-test--score
                   '(defun f (x) "Doc." (pcase x ('a 1) (_ 2))))))
     (should (= 2 literal))
@@ -139,12 +139,12 @@
     (should (= literal (complexity-test--score
                         '(defun f (x) "Doc."
                                 (pcase x (`(a . ,rest) rest) (_ 2)))))))
-  ;; A `cond\=' clause is code, and its car is the question itself.
+  ;; A `cond' clause is code, and its car is the question itself.
   (should (= 3 (complexity-test--score
                 '(defun f (x) "Doc." (cond ((or x 1) 1) (t 2)))))))
 
 (ert-deftest complexity-test-a-binding-branch-costs-what-its-plain-form-does ()
-  "A `when-let\=' is a `when\=', and a `while-let\=' is a loop."
+  "A `when-let' is a `when', and a `while-let' is a loop."
   (should (= (complexity-test--score
               '(defun f (x) "Doc." (when x (g x) (h x))))
              (complexity-test--score
@@ -155,12 +155,12 @@
               '(defun f (x) "Doc." (while (f x) (g x))))
              (complexity-test--score
               '(defun f (x) "Doc." (while-let ((y (f x))) (g y))))))
-  ;; An `if-let\=' keeps its else.
+  ;; An `if-let' keeps its else.
   (should (= 2 (complexity-test--score
                 '(defun f (x) "Doc." (if-let ((y x)) (g y) (h x)))))))
 
 (ert-deftest complexity-test-a-loop-keyword-is-a-question ()
-  "`cl-loop\=' costs what the same loop written out costs."
+  "`cl-loop' costs what the same loop written out costs."
   (should (= (complexity-test--score
               '(defun f (xs) "Doc."
                       (dolist (x xs) (if (p x) (collect x) (collect (g x))))))

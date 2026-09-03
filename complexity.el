@@ -28,9 +28,9 @@
 ;;     bin/elisp-complexity --report FILE...
 ;;     bin/elisp-complexity --max 20 FILE...
 ;;
-;; `complexity-gate\=' is what the hook calls: it prints nothing where
+;; `complexity-gate' is what the hook calls: it prints nothing where
 ;; every function is at or under the gate, and exits with 1 where one is
-;; over.  `--report\=' prints the table whatever the scores are.
+;; over.  `--report' prints the table whatever the scores are.
 ;;
 ;; It scores every function by *cognitive complexity*: how much of it a
 ;; reader has to hold in their head at once.  The rules are those of the
@@ -116,13 +116,13 @@ same operator however long it is, and `jump' one without the nesting.")
 
 (defconst complexity-loop-keywords
   '(if when unless while until thereis always never)
-  "The `cl-loop\=' keywords that are a question, `else\=' apart.")
+  "The `cl-loop' keywords that are a question, `else' apart.")
 
 (defun complexity--walk-loop (form nest)
   "Score the looping FORM, which sits NEST levels deep.
-`cl-loop\=' says its branches in keywords, which read as bare symbols
+`cl-loop' says its branches in keywords, which read as bare symbols
 and would otherwise cost nothing: each one costs what the same question
-in the body costs, and `else\=' what an else costs."
+in the body costs, and `else' what an else costs."
   (complexity--add 1 nest)
   (when (eq (car form) 'cl-loop)
     (complexity--add (seq-count (lambda (x)
@@ -141,7 +141,7 @@ Every clause after the first is another way through."
     (if (eq head 'cond)
         (complexity--walk-all clauses (1+ nest))
       (complexity--walk (nth 1 form) nest)
-      ;; The car of a clause is a pattern, and `or\=', `and\=' and a
+      ;; The car of a clause is a pattern, and `or', `and' and a
       ;; backquote in a pattern are not the questions of the same name.
       (dolist (clause clauses)
         (complexity--walk-all (cdr-safe clause) (1+ nest))))))
