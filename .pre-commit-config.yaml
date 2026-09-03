@@ -56,6 +56,13 @@ repos:
     language: system
     files: \.el$
     pass_filenames: false
+  - id: relint
+    name: relint
+    description: The regexps and the doc string escapes of every Lisp file.
+    entry: make relint
+    language: system
+    files: \.el$
+    pass_filenames: false
   - id: tests
     name: ert tests
     description: Byte-compilation and the batch suite, before a push.
