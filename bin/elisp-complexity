@@ -1,0 +1,36 @@
+#!/bin/sh
+# Report what each Emacs Lisp function costs a reader, and stop a commit
+# where one costs more than the gate.
+#
+#     elisp-complexity [--max N] [--report] FILE...
+#
+#   --max N   the score above which a function fails the run; 15 by
+#             default, which is where SonarSource puts its own gate
+#   --report  print the whole table, even where nothing is over the gate
+#
+# Nothing is printed on a clean run: a hook that speaks every time is a
+# hook people turn off.
+set -eu
+
+EMACS=${EMACS:-emacs}
+here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+max=15
+report=nil
+files=""
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    --max) max=$2; shift 2 ;;
+    --max=*) max=${1#--max=}; shift ;;
+    --report) report=t; shift ;;
+    --) shift ;;
+    -*) echo "elisp-complexity: unknown option $1" >&2; exit 2 ;;
+    *) files="$files $1"; shift ;;
+  esac
+done
+
+[ -n "$files" ] || exit 0
+
+# shellcheck disable=SC2086
+exec "$EMACS" -Q --batch -l "$here/complexity.el" \
+  --eval "(complexity-gate $max $report)" $files
