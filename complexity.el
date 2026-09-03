@@ -232,10 +232,12 @@ deal."
       (while (progn (forward-comment (buffer-size)) (not (eobp)))
         (let* ((beg (point))
                (line (line-number-at-pos beg))
-               (form (condition-case nil (read (current-buffer))
+               (form (condition-case err (read (current-buffer))
                        ;; A file this Emacs cannot read is not a file
-                       ;; this can measure; what was read still counts.
-                       (error (goto-char (point-max)) nil)))
+                       ;; this can measure, and a gate that passes it
+                       ;; unmeasured says the wrong thing.
+                       (error (error "%s:%d: %s" file line
+                                     (error-message-string err)))))
                (text (buffer-substring-no-properties beg (point))))
           (when (and (consp form) (memq (car form) complexity-definers))
             (let* ((doc (and (stringp (nth 3 form)) (nth 3 form)))
