@@ -118,11 +118,11 @@
     (should (= 3 bare))
     (should (= bare (complexity-test--score
                      '(defun f (x) "Doc."
-                        (mapcar #'(lambda (y) (if y 1 2)) x)))))
+                             (mapcar #'(lambda (y) (if y 1 2)) x)))))
     (should (= bare (complexity-test--score
                      '(defun f (x) "Doc."
-                        (mapcar (cl-function (lambda (y) (if y 1 2)))
-                                x)))))))
+                             (mapcar (cl-function (lambda (y) (if y 1 2)))
+                                     x)))))))
 
 (ert-deftest complexity-test-a-pattern-is-not-a-question ()
   "`or\=', `and\=' and a backquote in a `pcase\=' pattern cost nothing."
@@ -131,14 +131,14 @@
     (should (= 2 literal))
     (should (= literal (complexity-test--score
                         '(defun f (x) "Doc."
-                           (pcase x ((or 'a 'b) 1) (_ 2))))))
+                                (pcase x ((or 'a 'b) 1) (_ 2))))))
     (should (= literal (complexity-test--score
                         '(defun f (x) "Doc."
-                           (pcase x ((and s (guard (stringp s))) 1)
-                             (_ 2))))))
+                                (pcase x ((and s (guard (stringp s))) 1)
+                                       (_ 2))))))
     (should (= literal (complexity-test--score
                         '(defun f (x) "Doc."
-                           (pcase x (`(a . ,rest) rest) (_ 2)))))))
+                                (pcase x (`(a . ,rest) rest) (_ 2)))))))
   ;; A `cond\=' clause is code, and its car is the question itself.
   (should (= 3 (complexity-test--score
                 '(defun f (x) "Doc." (cond ((or x 1) 1) (t 2)))))))
@@ -163,12 +163,12 @@
   "`cl-loop\=' costs what the same loop written out costs."
   (should (= (complexity-test--score
               '(defun f (xs) "Doc."
-                 (dolist (x xs) (if (p x) (collect x) (collect (g x))))))
+                      (dolist (x xs) (if (p x) (collect x) (collect (g x))))))
              (complexity-test--score
               '(defun f (xs) "Doc."
-                 (cl-loop for x in xs
-                          if (p x) collect x
-                          else collect (g x))))))
+                      (cl-loop for x in xs
+                               if (p x) collect x
+                               else collect (g x))))))
   (should (= 1 (complexity-test--score
                 '(defun f (xs) "Doc." (cl-loop for x in xs collect x))))))
 
