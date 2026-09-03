@@ -172,6 +172,15 @@
   (should (= 1 (complexity-test--score
                 '(defun f (xs) "Doc." (cl-loop for x in xs collect x))))))
 
+(ert-deftest complexity-test-a-file-it-cannot-read-fails ()
+  "A file no reader can read is not a file this can pass."
+  (let ((file (make-temp-file "complexity" nil ".el")))
+    (with-temp-file file
+      (insert "(defun one (x
+" "(defun two (x) \"Doc.\" (when x 1))\n"))
+    (should-error (complexity-file file))
+    (delete-file file)))
+
 (ert-deftest complexity-test-a-file-is-read-and-counted ()
   "Every definition of a file is found, with its lines told apart."
   (let* ((file (make-temp-file "complexity" nil ".el"))
