@@ -99,7 +99,7 @@ same operator however long it is, and `jump' one without the nesting.")
   (setq complexity--score (+ complexity--score n (* n nest))))
 
 (defun complexity--walk-if (form nest)
-  "Score the `if\=' shaped FORM, which sits NEST levels deep."
+  "Score the `if' shaped FORM, which sits NEST levels deep."
   (complexity--add 1 nest)
   ;; The else is a second way out of one question, which is cheaper to
   ;; read than a question of its own.
@@ -158,7 +158,7 @@ goes rather than signalling."
 
 (defun complexity--walk (form nest &optional operator)
   "Score FORM, which sits NEST levels deep.
-OPERATOR is the `and\=' or `or\=' it stands directly inside, where it
+OPERATOR is the `and' or `or' it stands directly inside, where it
 does.  Every kind of form has its own function; this one says which."
   (setq complexity--depth (max complexity--depth nest))
   (when (consp form)
@@ -185,8 +185,8 @@ does.  Every kind of form has its own function; this one says which."
 
 (defun complexity-of (definition)
   "Return what the function DEFINITION costs a reader, as a plist.
-DEFINITION is a `defun\\=' form as `read\\=' answers it.  The keys are
-`:score\\=', `:depth\\=', `:forms\\=' and `:recurses\\='."
+DEFINITION is a `defun' form as `read' answers it.  The keys are
+`:score', `:depth', `:forms' and `:recurses'."
   (setq complexity--score 0
         complexity--depth 0
         complexity--forms 0
@@ -200,9 +200,9 @@ DEFINITION is a `defun\\=' form as `read\\=' answers it.  The keys are
 
 (defun complexity-file (file)
   "Return a plist for every function FILE defines.
-Beside what `complexity-of\\=' answers: `:name\\=', `:line\\=', `:file\\=', and
-the lines of the definition told apart as `:code\\=', `:doc\\=', `:comment\\='
-and `:blank\\='.  Comments never reach the score — the reader drops them —
+Beside what `complexity-of' answers: `:name', `:line', `:file', and
+the lines of the definition told apart as `:code', `:doc', `:comment'
+and `:blank'.  Comments never reach the score — the reader drops them —
 so a long explanation costs nothing and a dense line costs a great
 deal."
   (with-temp-buffer
@@ -240,7 +240,7 @@ deal."
 
 (defun complexity-report (files)
   "Print what every function of FILES costs a reader, the dearest first."
-  ;; Not the keyword form of `sort\=', which is Emacs 30: this tool
+  ;; Not the keyword form of `sort', which is Emacs 30: this tool
   ;; declares 29.1 and runs there.
   (complexity--print (sort (mapcan #'complexity-file files)
                            (lambda (a b) (> (plist-get a :score)
@@ -275,7 +275,7 @@ deal."
                      "")))))
 
 (defun complexity-gate (max &optional report)
-  "Score `command-line-args-left\=' and fail where a function costs over MAX.
+  "Score `command-line-args-left' and fail where a function costs over MAX.
 Prints nothing where every function is at or under MAX, unless REPORT
 says to print the table anyway: a hook that speaks on every commit is a
 hook people turn off.  Exits with 1 where something is over."
