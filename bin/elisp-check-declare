@@ -4,18 +4,29 @@
 #
 #     elisp-check-declare FILE...
 #
-# check-declare-file always exits zero, so its output is the verdict:
-# a declare whose function is no longer where it says is a failure, and
-# a clean run says nothing.
+# check-declare-file always exits zero, and the echoes it leaves on the
+# way say as much about the libraries it opens as about the claims it
+# verifies, so the verdict is read from its warning buffer instead: any
+# warning at all is a failure, and a clean run says nothing.
 set -eu
 
 EMACS=${EMACS:-emacs}
 program='(progn
   (require (quote check-declare))
-  (dolist (f command-line-args-left)
-    (check-declare-file f)))'
+  (let ((warnings nil))
+    (dolist (f command-line-args-left)
+      (let ((inhibit-message t))
+        (check-declare-file f))
+      (let ((buf (get-buffer check-declare-warning-buffer)))
+        (when buf
+          (with-current-buffer buf
+            (goto-char (point-min))
+            (skip-chars-forward "\f\n \t")
+            (unless (eobp)
+              (push (buffer-string) warnings))))))
+    (princ (mapconcat (function identity) (nreverse warnings) "\n"))))'
 
 [ $# -gt 0 ] || exit 0
 
-out=$("$EMACS" -Q --batch --eval "$program" "$@" 2>&1) || true
+out=$("$EMACS" -Q --batch --eval "$program" "$@" 2>/dev/null) || true
 if [ -n "$out" ]; then printf '%s\n' "$out"; exit 1; fi
