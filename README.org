@@ -1,12 +1,12 @@
 # Inspired by: https://github.com/othneildrew/Best-README-Template
 #+OPTIONS: toc:nil
 
-[[https://github.com/MArpogaus/elisp-complexity/graphs/contributors][https://img.shields.io/github/contributors/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/network/members][https://img.shields.io/github/forks/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/stargazers][https://img.shields.io/github/stars/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/issues][https://img.shields.io/github/issues/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/blob/main/COPYING][https://img.shields.io/github/license/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/actions/workflows/test.yml][https://img.shields.io/github/actions/workflow/status/MArpogaus/elisp-complexity/test.yml.svg?branch=main&label=tests&style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/graphs/contributors][https://img.shields.io/github/contributors/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/network/members][https://img.shields.io/github/forks/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/stargazers][https://img.shields.io/github/stars/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/issues][https://img.shields.io/github/issues/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/blob/main/COPYING][https://img.shields.io/github/license/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/actions/workflows/test.yml][https://img.shields.io/github/actions/workflow/status/MArpogaus/emacs-pre-commit-hooks/test.yml.svg?branch=main&label=tests&style=flat-square]]
 
 * Elisp Complexity :TOC_3_gh:noexport:
   - [[#about-the-project][About The Project]]
@@ -34,7 +34,7 @@ run where one function costs more than the gate.
 *** As a pre-commit hook
 
 #+begin_src yaml
-  - repo: https://github.com/MArpogaus/elisp-complexity
+  - repo: https://github.com/MArpogaus/emacs-pre-commit-hooks
     rev: v0.2.0
     hooks:
     - id: elisp-complexity
@@ -59,7 +59,7 @@ off.  Where one is over, it prints the table and the commit stops.
 Raise or lower the gate, or ask for the table every time:
 
 #+begin_src yaml
-  - repo: https://github.com/MArpogaus/elisp-complexity
+  - repo: https://github.com/MArpogaus/emacs-pre-commit-hooks
     rev: v0.2.0
     hooks:
     - id: elisp-complexity
@@ -141,4 +141,4 @@ Distributed under the [[file:COPYING][GPLv3]] License.
 
 [[https://github.com/MArpogaus/][Marcel Arpogaus]] - [[mailto:znepry.necbtnhf@tznvy.pbz][znepry.necbtnhf@tznvy.pbz]] (encrypted with [[https://rot13.com/][ROT13]])
 
-Project Link: [[https://github.com/MArpogaus/elisp-complexity][https://github.com/MArpogaus/elisp-complexity]]
+Project Link: [[https://github.com/MArpogaus/emacs-pre-commit-hooks][https://github.com/MArpogaus/emacs-pre-commit-hooks]]
