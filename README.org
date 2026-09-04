@@ -40,15 +40,17 @@ run where one function costs more than the gate.
     - id: elisp-complexity
     - id: elisp-indent
     - id: elisp-checkdoc
+    - id: elisp-check-declare
 #+end_src
 
-Three hooks share the one repository:
+Four hooks share the one repository:
 
-| Hook               | What it does                                                        |
-|--------------------+---------------------------------------------------------------------|
-| =elisp-complexity= | what each function costs a reader, and a gate on the dearest        |
-| =elisp-indent=     | the indentation Emacs gives Lisp, in place, each file loaded first  |
-| =elisp-checkdoc=   | the documentation style, where any output at all is a failure       |
+| Hook                 | What it does                                                          |
+|----------------------+-----------------------------------------------------------------------|
+| =elisp-complexity=   | what each function costs a reader, and a gate on the dearest          |
+| =elisp-indent=       | the indentation Emacs gives Lisp, in place, each file loaded first    |
+| =elisp-checkdoc=     | the documentation style, where any output at all is a failure         |
+| =elisp-check-declare= | whether every declare-function still says where its function is      |
 
 The complexity hook says nothing where every function is at or under
 the gate: a hook that speaks on every commit is a hook people turn
@@ -71,6 +73,7 @@ Raise or lower the gate, or ask for the table every time:
   bin/elisp-complexity --max 20 lisp/*.el   # only what is over 20
   bin/elisp-indent lisp/*.el                # indent in place, each file loaded first
   bin/elisp-checkdoc lisp/*.el              # documentation style, any output a failure
+  bin/elisp-check-declare lisp/*.el         # the declare-function forms, any output a failure
 #+end_src
 
 =EMACS= names the Emacs to use, where it is not =emacs=.
@@ -112,7 +115,7 @@ Fifteen is the default gate, which is where SonarSource puts its own.
 The number is for finding the functions worth splitting, not for
 passing.
 
-The rules are checked in [[file:test/complexity-test.el][test/complexity-test.el]], the two script hooks in
+The rules are checked in [[file:test/complexity-test.el][test/complexity-test.el]], the three script hooks in
 [[file:test/hooks-test.el][test/hooks-test.el]].
 
 ** Development
