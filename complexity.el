@@ -30,7 +30,7 @@
 ;;
 ;; `complexity-gate' is what the hook calls: it prints nothing where
 ;; every function is at or under the gate, and exits with 1 where one is
-;; over.  `complexity-report' prints the table whatever the scores are.
+;; over.  `--report' prints the table whatever the scores are.
 ;;
 ;; It scores every function by *cognitive complexity*: how much of it a
 ;; reader has to hold in their head at once.  The rules are those of the
@@ -63,10 +63,11 @@
 (require 'subr-x)
 
 (defconst complexity-branching
-  '((if . if) (if-let . if) (if-let* . if) (when-let . if) (when-let* . if)
-    (and-let* . if) (while-let . if)
+  '((if . if) (if-let . if) (if-let* . if)
     (when . plain) (unless . plain)
-    (while . loop) (dolist . loop) (dotimes . loop) (cl-loop . loop)
+    (when-let . plain) (when-let* . plain) (and-let* . plain)
+    (while . loop) (while-let . loop) (dolist . loop) (dotimes . loop)
+    (cl-loop . loop)
     (cl-dolist . loop) (cl-dotimes . loop) (seq-doseq . loop)
     (pcase-dolist . loop) (dolist-with-progress-reporter . loop)
     (cl-do . loop) (cl-do* . loop)
@@ -76,7 +77,7 @@
     (ignore-errors . plain)
     (and . run) (or . run)
     (throw . jump) (cl-return . jump) (cl-return-from . jump)
-    (lambda . body) (cl-function . body)
+    (lambda . body)
     (cl-flet . nested) (cl-flet* . nested) (cl-labels . nested))
   "What each form costs, by the kind of break in the flow it is.
 `if' takes one more for an else, `clauses' one for each clause after the
@@ -99,7 +100,7 @@ same operator however long it is, and `jump' one without the nesting.")
   (setq complexity--score (+ complexity--score n (* n nest))))
 
 (defun complexity--walk-if (form nest)
-  "Score the `if\=' shaped FORM, which sits NEST levels deep."
+  "Score the `if' shaped FORM, which sits NEST levels deep."
   (complexity--add 1 nest)
   ;; The else is a second way out of one question, which is cheaper to
   ;; read than a question of its own.
@@ -113,9 +114,22 @@ same operator however long it is, and `jump' one without the nesting.")
   (complexity--walk (nth 1 form) nest)
   (complexity--walk-all (nthcdr 2 form) (1+ nest)))
 
+(defconst complexity-loop-keywords
+  '(if when unless while until thereis always never)
+  "The `cl-loop' keywords that are a question, `else' apart.")
+
 (defun complexity--walk-loop (form nest)
-  "Score the looping FORM, which sits NEST levels deep."
+  "Score the looping FORM, which sits NEST levels deep.
+`cl-loop' says its branches in keywords, which read as bare symbols
+and would otherwise cost nothing: each one costs what the same question
+in the body costs, and `else' what an else costs."
   (complexity--add 1 nest)
+  (when (eq (car form) 'cl-loop)
+    (complexity--add (seq-count (lambda (x)
+                                  (memq x complexity-loop-keywords))
+                                (cdr form))
+                     (1+ nest))
+    (complexity--add (seq-count (lambda (x) (eq x 'else)) (cdr form)) 0))
   (complexity--walk-all (cdr form) (1+ nest)))
 
 (defun complexity--walk-clauses (form head nest)
@@ -124,8 +138,13 @@ Every clause after the first is another way through."
   (complexity--add 1 nest)
   (let ((clauses (if (eq head 'cond) (cdr form) (nthcdr 2 form))))
     (complexity--add (max 0 (1- (safe-length clauses))) 0)
-    (unless (eq head 'cond) (complexity--walk (nth 1 form) nest))
-    (complexity--walk-all clauses (1+ nest))))
+    (if (eq head 'cond)
+        (complexity--walk-all clauses (1+ nest))
+      (complexity--walk (nth 1 form) nest)
+      ;; The car of a clause is a pattern, and `or', `and' and a
+      ;; backquote in a pattern are not the questions of the same name.
+      (dolist (clause clauses)
+        (complexity--walk-all (cdr-safe clause) (1+ nest))))))
 
 (defun complexity--walk-handlers (form nest)
   "Score the handler FORM, which sits NEST levels deep.
@@ -158,7 +177,7 @@ goes rather than signalling."
 
 (defun complexity--walk (form nest &optional operator)
   "Score FORM, which sits NEST levels deep.
-OPERATOR is the `and\=' or `or\=' it stands directly inside, where it
+OPERATOR is the `and' or `or' it stands directly inside, where it
 does.  Every kind of form has its own function; this one says which."
   (setq complexity--depth (max complexity--depth nest))
   (when (consp form)
@@ -167,7 +186,7 @@ does.  Every kind of form has its own function; this one says which."
            (kind (and (symbolp head)
                       (cdr (assq head complexity-branching)))))
       (pcase kind
-        ((guard (memq head '(quote function declare))) nil)
+        ((guard (memq head '(quote declare))) nil)
         ('if (complexity--walk-if form nest))
         ('plain (complexity--walk-plain form nest))
         ('loop (complexity--walk-loop form nest))
@@ -185,8 +204,8 @@ does.  Every kind of form has its own function; this one says which."
 
 (defun complexity-of (definition)
   "Return what the function DEFINITION costs a reader, as a plist.
-DEFINITION is a `defun\\=' form as `read\\=' answers it.  The keys are
-`:score\\=', `:depth\\=', `:forms\\=' and `:recurses\\='."
+DEFINITION is a `defun' form as `read' answers it.  The keys are
+`:score', `:depth', `:forms' and `:recurses'."
   (setq complexity--score 0
         complexity--depth 0
         complexity--forms 0
@@ -200,9 +219,9 @@ DEFINITION is a `defun\\=' form as `read\\=' answers it.  The keys are
 
 (defun complexity-file (file)
   "Return a plist for every function FILE defines.
-Beside what `complexity-of\\=' answers: `:name\\=', `:line\\=', `:file\\=', and
-the lines of the definition told apart as `:code\\=', `:doc\\=', `:comment\\='
-and `:blank\\='.  Comments never reach the score — the reader drops them —
+Beside what `complexity-of' answers: `:name', `:line', `:file', and
+the lines of the definition told apart as `:code', `:doc', `:comment'
+and `:blank'.  Comments never reach the score — the reader drops them —
 so a long explanation costs nothing and a dense line costs a great
 deal."
   (with-temp-buffer
@@ -213,10 +232,12 @@ deal."
       (while (progn (forward-comment (buffer-size)) (not (eobp)))
         (let* ((beg (point))
                (line (line-number-at-pos beg))
-               (form (condition-case nil (read (current-buffer))
+               (form (condition-case err (read (current-buffer))
                        ;; A file this Emacs cannot read is not a file
-                       ;; this can measure; what was read still counts.
-                       (error (goto-char (point-max)) nil)))
+                       ;; this can measure, and a gate that passes it
+                       ;; unmeasured says the wrong thing.
+                       (error (error "%s:%d: %s" file line
+                                     (error-message-string err)))))
                (text (buffer-substring-no-properties beg (point))))
           (when (and (consp form) (memq (car form) complexity-definers))
             (let* ((doc (and (stringp (nth 3 form)) (nth 3 form)))
@@ -237,15 +258,6 @@ deal."
                             (complexity-of form))
                     found)))))
       (nreverse found))))
-
-(defun complexity-report (files)
-  "Print what every function of FILES costs a reader, the dearest first."
-  ;; Not the keyword form of `sort\=', which is Emacs 30: this tool
-  ;; declares 29.1 and runs there.
-  (complexity--print (sort (mapcan #'complexity-file files)
-                           (lambda (a b) (> (plist-get a :score)
-                                            (plist-get b :score))))
-                     15))
 
 (defun complexity--print (all max)
   "Print the table of ALL, and say which functions cost more than MAX."
@@ -275,7 +287,7 @@ deal."
                      "")))))
 
 (defun complexity-gate (max &optional report)
-  "Score `command-line-args-left\=' and fail where a function costs over MAX.
+  "Score `command-line-args-left' and fail where a function costs over MAX.
 Prints nothing where every function is at or under MAX, unless REPORT
 says to print the table anyway: a hook that speaks on every commit is a
 hook people turn off.  Exits with 1 where something is over."

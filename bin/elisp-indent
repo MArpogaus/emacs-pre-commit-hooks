@@ -1,0 +1,34 @@
+#!/bin/sh
+# Indent Emacs Lisp the way Emacs does, and stop a commit that left a
+# file with the wrong indentation.
+#
+#     elisp-indent FILE...
+#
+# Only the leading whitespace of a line can change: `indent-region',
+# no reflow, no rewriting.  Each file is loaded before it is indented,
+# because a macro declares the indent of its body and an undefined
+# macro reads as a function call.  A file that does not load is left
+# alone and named, not a failure; the exit status is 1 only where
+# something had to be indented.
+#
+# The files come from pre-commit, which runs the hook from the root of
+# the repository whose files they are.  That root, plus its test and
+# lisp directories where they are there, goes on the load path: that is
+# what the loading needs to find the macros of that repository.
+set -eu
+
+EMACS=${EMACS:-emacs}
+here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+
+[ $# -gt 0 ] || exit 0
+
+# The additions land in front of what is there, so the pieces are put
+# in the reverse of the order they should end up in: the load path
+# first, the tool last, the file names still at the end.
+set -- -l "$here/indent.el" "$@"
+[ -d "$root/lisp" ] && set -- -L "$root/lisp" "$@"
+[ -d "$root/test" ] && set -- -L "$root/test" "$@"
+set -- -L "$root" "$@"
+
+exec "$EMACS" -Q --batch "$@"
