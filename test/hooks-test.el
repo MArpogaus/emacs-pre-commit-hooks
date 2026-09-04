@@ -25,10 +25,10 @@
 
 ;; Run with: make test
 ;;
-;; The two hooks that are scripts, `bin/elisp-indent' and
-;; `bin/elisp-checkdoc', over files in a directory of their own.  They
-;; shell out: the tests ask what a commit would be told, not what a
-;; function inside this one would answer.
+;; The three hooks that are scripts, `bin/elisp-indent',
+;; `bin/elisp-checkdoc' and `bin/elisp-check-declare', over files in a
+;; directory of their own.  They shell out: the tests ask what a commit
+;; would be told, not what a function inside this one would answer.
 
 ;;; Code:
 
@@ -173,6 +173,37 @@
         (let ((answer (hooks-test--run "elisp-checkdoc" dir file)))
           (should (= 1 (car answer)))
           (should (string-match-p "punctuation" (cadr answer))))
+      (delete-directory dir t))))
+
+(ert-deftest hooks-test-check-declare-passes-on-fresh-declares ()
+  "A declare whose function is where it says stops nothing."
+  (let* ((dir (make-temp-file "hooks-test" t))
+         (_ (hooks-test--write dir "target.el"
+                               "(defun declare-target-one (x) (+ x 1))\n"
+                               "(provide 'target)\n"))
+         (file (hooks-test--write dir "caller.el"
+                                  "(declare-function declare-target-one \"target.el\")\n"
+                                  "(defun declare-caller-one (x) (declare-target-one x))\n")))
+    (unwind-protect
+        (let ((answer (hooks-test--run "elisp-check-declare" dir file)))
+          (should (= 0 (car answer)))
+          (should (string-empty-p (cadr answer))))
+      (delete-directory dir t))))
+
+(ert-deftest hooks-test-check-declare-fails-on-a-stale-declare ()
+  "A declare whose function is no longer there is named, and the run fails."
+  (let* ((dir (make-temp-file "hooks-test" t))
+         (_ (hooks-test--write dir "target.el"
+                               "(defun declare-target-one (x) (+ x 1))\n"
+                               "(provide 'target)\n"))
+         (file (hooks-test--write dir "caller.el"
+                                  "(declare-function declare-target-gone \"target.el\")\n"
+                                  "(defun declare-caller-one (x) (declare-target-gone x))\n")))
+    (unwind-protect
+        (let ((answer (hooks-test--run "elisp-check-declare" dir file)))
+          (should (= 1 (car answer)))
+          (should (string-match-p "function not found" (cadr answer)))
+          (should (string-match-p "declare-target-gone" (cadr answer))))
       (delete-directory dir t))))
 
 (provide 'hooks-test)

@@ -21,3 +21,12 @@
   files: \.el$
   exclude: ((-autoloads|-pkg)\.el$|\.dir-locals\.el$|^demo/)
   require_serial: true
+- id: elisp-check-declare
+  name: elisp check-declare
+  description: Whether every declare-function still says where its function is.
+  entry: bin/elisp-check-declare
+  language: script
+  files: \.el$
+  exclude: ((-autoloads|-pkg)\.el$|\.dir-locals\.el$)
+  require_serial: true
+  stages: [pre-push]

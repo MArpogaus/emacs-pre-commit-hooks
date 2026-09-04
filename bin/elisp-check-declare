@@ -1,0 +1,21 @@
+#!/bin/sh
+# Verify the declare-function forms of Emacs Lisp files, as
+# check-declare-file does, and stop a commit where one has gone stale.
+#
+#     elisp-check-declare FILE...
+#
+# check-declare-file always exits zero, so its output is the verdict:
+# a declare whose function is no longer where it says is a failure, and
+# a clean run says nothing.
+set -eu
+
+EMACS=${EMACS:-emacs}
+program='(progn
+  (require (quote check-declare))
+  (dolist (f command-line-args-left)
+    (check-declare-file f)))'
+
+[ $# -gt 0 ] || exit 0
+
+out=$("$EMACS" -Q --batch --eval "$program" "$@" 2>&1) || true
+if [ -n "$out" ]; then printf '%s\n' "$out"; exit 1; fi
