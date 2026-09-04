@@ -1,0 +1,125 @@
+# Inspired by: https://github.com/othneildrew/Best-README-Template
+#+OPTIONS: toc:nil
+
+[[https://github.com/MArpogaus/elisp-complexity/graphs/contributors][https://img.shields.io/github/contributors/MArpogaus/elisp-complexity.svg?style=flat-square]]
+[[https://github.com/MArpogaus/elisp-complexity/network/members][https://img.shields.io/github/forks/MArpogaus/elisp-complexity.svg?style=flat-square]]
+[[https://github.com/MArpogaus/elisp-complexity/stargazers][https://img.shields.io/github/stars/MArpogaus/elisp-complexity.svg?style=flat-square]]
+[[https://github.com/MArpogaus/elisp-complexity/issues][https://img.shields.io/github/issues/MArpogaus/elisp-complexity.svg?style=flat-square]]
+[[https://github.com/MArpogaus/elisp-complexity/blob/main/COPYING][https://img.shields.io/github/license/MArpogaus/elisp-complexity.svg?style=flat-square]]
+[[https://github.com/MArpogaus/elisp-complexity/actions/workflows/test.yml][https://img.shields.io/github/actions/workflow/status/MArpogaus/elisp-complexity/test.yml.svg?branch=main&label=tests&style=flat-square]]
+
+* Elisp Complexity :TOC_3_gh:noexport:
+  - [[#about-the-project][About The Project]]
+  - [[#getting-started][Getting Started]]
+    - [[#as-a-pre-commit-hook][As a pre-commit hook]]
+    - [[#on-the-command-line][On the command line]]
+  - [[#what-it-counts][What It Counts]]
+  - [[#development][Development]]
+  - [[#license][License]]
+  - [[#contact][Contact]]
+
+** About The Project
+
+There is no complexipy for Emacs Lisp, and no ruff.  =checkdoc=,
+=package-lint=, =relint= and the byte-compiler all say nothing about
+the shape of a function: a hundred-line =cond= inside a =dolist= inside
+a =when= passes every one of them.
+
+This is the missing check.  It scores each function by *cognitive
+complexity* — how much of it a reader has to hold at once — and fails a
+run where one function costs more than the gate.
+
+** Getting Started
+
+*** As a pre-commit hook
+
+#+begin_src yaml
+  - repo: https://github.com/MArpogaus/elisp-complexity
+    rev: v0.1.0
+    hooks:
+    - id: elisp-complexity
+#+end_src
+
+The hook says nothing where every function is at or under the gate: a
+hook that speaks on every commit is a hook people turn off.  Where one
+is over, it prints the table and the commit stops.
+
+Raise or lower the gate, or ask for the table every time:
+
+#+begin_src yaml
+  - repo: https://github.com/MArpogaus/elisp-complexity
+    rev: v0.1.0
+    hooks:
+    - id: elisp-complexity
+      args: [--max, '20', --report]
+#+end_src
+
+*** On the command line
+
+#+begin_src shell
+  bin/elisp-complexity --report lisp/*.el   # the whole table
+  bin/elisp-complexity --max 20 lisp/*.el   # only what is over 20
+#+end_src
+
+=EMACS= names the Emacs to use, where it is not =emacs=.
+
+The report is one line per function, dearest first:
+
+#+begin_example
+  FUNCTION                    FILE:LINE          COST DEEP  FORMS  CODE
+  overblock-image-cap         overblock.el:591     17    3     29    16
+  overblock-md--remote-file   overblock-md.el:152  17    4     22    17
+  ...
+  156 functions, 606 in all, 3.9 each, most 17.
+  2 over 15: overblock-image-cap, overblock-md--remote-file
+#+end_example
+
+=COST= is the score, =DEEP= the deepest nesting, =FORMS= the number of
+forms the function is built from and =CODE= its lines, comments and doc
+string left out.
+
+** What It Counts
+
+The rules are those of the SonarSource white paper, which is
+language-independent, read here as Lisp:
+
+- A form that breaks the straight line costs one: =if=, =when=,
+  =while=, =dolist=, =cond=, =pcase=, a =condition-case= handler, a
+  =throw=.
+- A form nested inside another such form costs one more for each level
+  it is in.  Two nested =dolist= forms cost 1 + 2, not 1 + 1.
+- A branch that also has an else costs one more, and a =cond= or
+  =pcase= costs one for each clause after the first.
+- A run of the same operator costs one however long it is: =(and a b
+  c)= costs one, =(and a (or b c))= two.
+- A sequence of plain calls costs nothing, however long.  Neither does
+  a long =let=, a long doc string, or a comment: the reader of the
+  score reads code, and the reader of the code reads the prose.
+
+Fifteen is the default gate, which is where SonarSource puts its own.
+The number is for finding the functions worth splitting, not for
+passing.
+
+The rules are checked in [[file:test/complexity-test.el][test/complexity-test.el]].
+
+** Development
+
+| Target     | What it does                        |
+|------------+-------------------------------------|
+| =compile=  | byte-compile, warnings are errors   |
+| =checkdoc= | documentation style                 |
+| =test=     | ERT suite over the rules            |
+| =hook=     | the tool over its own Lisp          |
+| =clean=    | remove build output                 |
+
+Plain =make= runs them in that order, exactly as the CI does.
+
+** License
+
+Distributed under the [[file:COPYING][GPLv3]] License.
+
+** Contact
+
+[[https://github.com/MArpogaus/][Marcel Arpogaus]] - [[mailto:znepry.necbtnhf@tznvy.pbz][znepry.necbtnhf@tznvy.pbz]] (encrypted with [[https://rot13.com/][ROT13]])
+
+Project Link: [[https://github.com/MArpogaus/elisp-complexity][https://github.com/MArpogaus/elisp-complexity]]

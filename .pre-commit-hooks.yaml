@@ -1,0 +1,7 @@
+- id: elisp-complexity
+  name: elisp complexity
+  description: What each Emacs Lisp function costs a reader, and a gate on the dearest.
+  entry: bin/elisp-complexity
+  language: script
+  files: \.el$
+  exclude: (-autoloads|-pkg)\.el$
