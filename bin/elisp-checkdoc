@@ -1,0 +1,21 @@
+#!/bin/sh
+# Read the documentation strings of Emacs Lisp files as checkdoc does,
+# and stop a commit where it has something to say about one.
+#
+#     elisp-checkdoc FILE...
+#
+# checkdoc itself always exits zero, so its output is the verdict: any
+# output at all is a failure, and a clean run says nothing.
+set -eu
+
+EMACS=${EMACS:-emacs}
+program='(progn
+  (require (quote checkdoc))
+  (setq checkdoc-verb-check-experimental-flag nil)
+  (dolist (f command-line-args-left)
+    (checkdoc-file f)))'
+
+[ $# -gt 0 ] || exit 0
+
+out=$("$EMACS" -Q --batch --eval "$program" "$@" 2>&1) || true
+if [ -n "$out" ]; then printf '%s\n' "$out"; exit 1; fi

@@ -5,3 +5,19 @@
   language: script
   files: \.el$
   exclude: (-autoloads|-pkg)\.el$
+- id: elisp-indent
+  name: elisp indent
+  description: The indentation Emacs gives Lisp, in place; each file is loaded first.
+  entry: bin/elisp-indent
+  language: script
+  files: \.el$
+  exclude: ((-autoloads|-pkg)\.el$|\.dir-locals\.el$)
+  require_serial: true
+- id: elisp-checkdoc
+  name: elisp checkdoc
+  description: The documentation style of every Lisp file; any output is a failure.
+  entry: bin/elisp-checkdoc
+  language: script
+  files: \.el$
+  exclude: ((-autoloads|-pkg)\.el$|\.dir-locals\.el$|^demo/)
+  require_serial: true

@@ -22,9 +22,9 @@
 
 ;;; Commentary:
 
-;; The formatter of this repository, which `make format' runs:
-;;
-;;     emacs -Q --batch -L . -L test -l tools/indent.el FILE...
+;; The program behind `bin/elisp-indent', the hook; `make format' runs
+;; the same file.  It is given the files to indent, with the repository
+;; whose files they are on the load path, as `bin/elisp-indent' does.
 ;;
 ;; Every file is indented in place, by `indent-region' — the indentation
 ;; Emacs itself gives Lisp, and nothing else.  Lines are not reflowed and
@@ -41,8 +41,8 @@
 ;;
 ;; A file that had to be changed is named too, and the exit status is
 ;; then 1, which is what stops a commit.  A skipped file is not a
-;; failure: it is a file this repository cannot load without something it
-;; does not have, and leaving it as it stands is the right answer.
+;; failure: it is a file that repository cannot load without something
+;; it does not have, and leaving it as it stands is the right answer.
 
 ;;; Code:
 
@@ -63,11 +63,17 @@
       ;; are the repository's own and not this Emacs's defaults.
       (with-current-buffer (find-file-noselect file)
         (let ((before (buffer-string))
-              (inhibit-message t))
-          (indent-region (point-min) (point-max))
-          (unless (equal before (buffer-string))
+              (altered nil))
+          ;; The progress of `indent-region' and the writing of the
+          ;; file are chatter; the file that had to be indented is
+          ;; named after the work, once.
+          (let ((inhibit-message t))
+            (indent-region (point-min) (point-max))
+            (setq altered (not (equal before (buffer-string))))
+            (when altered
+              (save-buffer)))
+          (when altered
             (setq changed t)
-            (save-buffer)
             (message "indented %s" file))))))
   (pcase-dolist (`(,file . ,message) (nreverse skipped))
     (message "left %s alone, it does not load: %s" file message))
