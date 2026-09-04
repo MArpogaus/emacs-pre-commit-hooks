@@ -1,12 +1,12 @@
 # Inspired by: https://github.com/othneildrew/Best-README-Template
 #+OPTIONS: toc:nil
 
-[[https://github.com/MArpogaus/elisp-complexity/graphs/contributors][https://img.shields.io/github/contributors/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/network/members][https://img.shields.io/github/forks/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/stargazers][https://img.shields.io/github/stars/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/issues][https://img.shields.io/github/issues/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/blob/main/COPYING][https://img.shields.io/github/license/MArpogaus/elisp-complexity.svg?style=flat-square]]
-[[https://github.com/MArpogaus/elisp-complexity/actions/workflows/test.yml][https://img.shields.io/github/actions/workflow/status/MArpogaus/elisp-complexity/test.yml.svg?branch=main&label=tests&style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/graphs/contributors][https://img.shields.io/github/contributors/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/network/members][https://img.shields.io/github/forks/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/stargazers][https://img.shields.io/github/stars/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/issues][https://img.shields.io/github/issues/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/blob/main/COPYING][https://img.shields.io/github/license/MArpogaus/emacs-pre-commit-hooks.svg?style=flat-square]]
+[[https://github.com/MArpogaus/emacs-pre-commit-hooks/actions/workflows/test.yml][https://img.shields.io/github/actions/workflow/status/MArpogaus/emacs-pre-commit-hooks/test.yml.svg?branch=main&label=tests&style=flat-square]]
 
 * Elisp Complexity :TOC_3_gh:noexport:
   - [[#about-the-project][About The Project]]
@@ -34,21 +34,33 @@ run where one function costs more than the gate.
 *** As a pre-commit hook
 
 #+begin_src yaml
-  - repo: https://github.com/MArpogaus/elisp-complexity
-    rev: v0.1.0
+  - repo: https://github.com/MArpogaus/emacs-pre-commit-hooks
+    rev: v0.2.0
     hooks:
     - id: elisp-complexity
+    - id: elisp-indent
+    - id: elisp-checkdoc
+    - id: elisp-check-declare
 #+end_src
 
-The hook says nothing where every function is at or under the gate: a
-hook that speaks on every commit is a hook people turn off.  Where one
-is over, it prints the table and the commit stops.
+Four hooks share the one repository:
+
+| Hook                 | What it does                                                          |
+|----------------------+-----------------------------------------------------------------------|
+| =elisp-complexity=   | what each function costs a reader, and a gate on the dearest          |
+| =elisp-indent=       | the indentation Emacs gives Lisp, in place, each file loaded first    |
+| =elisp-checkdoc=     | the documentation style, where any output at all is a failure         |
+| =elisp-check-declare= | whether every declare-function still says where its function is      |
+
+The complexity hook says nothing where every function is at or under
+the gate: a hook that speaks on every commit is a hook people turn
+off.  Where one is over, it prints the table and the commit stops.
 
 Raise or lower the gate, or ask for the table every time:
 
 #+begin_src yaml
-  - repo: https://github.com/MArpogaus/elisp-complexity
-    rev: v0.1.0
+  - repo: https://github.com/MArpogaus/emacs-pre-commit-hooks
+    rev: v0.2.0
     hooks:
     - id: elisp-complexity
       args: [--max, '20', --report]
@@ -59,6 +71,9 @@ Raise or lower the gate, or ask for the table every time:
 #+begin_src shell
   bin/elisp-complexity --report lisp/*.el   # the whole table
   bin/elisp-complexity --max 20 lisp/*.el   # only what is over 20
+  bin/elisp-indent lisp/*.el                # indent in place, each file loaded first
+  bin/elisp-checkdoc lisp/*.el              # documentation style, any output a failure
+  bin/elisp-check-declare lisp/*.el         # the declare-function forms, any output a failure
 #+end_src
 
 =EMACS= names the Emacs to use, where it is not =emacs=.
@@ -100,19 +115,23 @@ Fifteen is the default gate, which is where SonarSource puts its own.
 The number is for finding the functions worth splitting, not for
 passing.
 
-The rules are checked in [[file:test/complexity-test.el][test/complexity-test.el]].
+The rules are checked in [[file:test/complexity-test.el][test/complexity-test.el]], the three script hooks in
+[[file:test/hooks-test.el][test/hooks-test.el]].
 
 ** Development
 
-| Target     | What it does                        |
-|------------+-------------------------------------|
-| =compile=  | byte-compile, warnings are errors   |
-| =checkdoc= | documentation style                 |
-| =test=     | ERT suite over the rules            |
-| =hook=     | the tool over its own Lisp          |
-| =clean=    | remove build output                 |
+| Target     | What it does                                      |
+|------------+---------------------------------------------------|
+| =compile=  | byte-compile, warnings are errors                 |
+| =checkdoc= | documentation style                               |
+| =relint=   | the regular expressions and the docstring escapes |
+| =test=     | ERT suite over the rules                          |
+| =hook=     | the tool over its own Lisp                        |
+| =format=   | indent every Lisp file in place                   |
+| =clean=    | remove build output and the tool sandbox          |
 
-Plain =make= runs them in that order, exactly as the CI does.
+Plain =make= runs the first five in that order, exactly as the CI
+does; =format= is not one of them, because it writes.
 
 ** License
 
@@ -122,4 +141,4 @@ Distributed under the [[file:COPYING][GPLv3]] License.
 
 [[https://github.com/MArpogaus/][Marcel Arpogaus]] - [[mailto:znepry.necbtnhf@tznvy.pbz][znepry.necbtnhf@tznvy.pbz]] (encrypted with [[https://rot13.com/][ROT13]])
 
-Project Link: [[https://github.com/MArpogaus/elisp-complexity][https://github.com/MArpogaus/elisp-complexity]]
+Project Link: [[https://github.com/MArpogaus/emacs-pre-commit-hooks][https://github.com/MArpogaus/emacs-pre-commit-hooks]]

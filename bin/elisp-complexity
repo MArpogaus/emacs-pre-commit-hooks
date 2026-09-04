@@ -16,21 +16,21 @@ EMACS=${EMACS:-emacs}
 here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 max=15
 report=nil
-files=""
 
+# The options come first, as pre-commit passes them: what is left is the
+# file names, which reach Emacs quoted, so a path may hold a space.
 while [ $# -gt 0 ]; do
   case $1 in
     --max) max=$2; shift 2 ;;
     --max=*) max=${1#--max=}; shift ;;
     --report) report=t; shift ;;
-    --) shift ;;
+    --) shift; break ;;
     -*) echo "elisp-complexity: unknown option $1" >&2; exit 2 ;;
-    *) files="$files $1"; shift ;;
+    *) break ;;
   esac
 done
 
-[ -n "$files" ] || exit 0
+[ $# -gt 0 ] || exit 0
 
-# shellcheck disable=SC2086
 exec "$EMACS" -Q --batch -l "$here/complexity.el" \
-  --eval "(complexity-gate $max $report)" $files
+  --eval "(complexity-gate $max $report)" "$@"
