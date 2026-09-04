@@ -2,11 +2,12 @@ name: pre-commit
 
 on:
   push:
-    branches: [main, dev]
   pull_request:
   workflow_dispatch:
 
 jobs:
+  # No melpazoid job here: this repository is a bundle of checks, not a
+  # MELPA package, so there is no recipe for it to check.
   pre-commit:
     runs-on: ubuntu-latest
     steps:
