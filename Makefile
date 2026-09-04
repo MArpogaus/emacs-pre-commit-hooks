@@ -21,10 +21,10 @@ SANDBOX ?= .sandbox
 STAMP   := $(SANDBOX)/.installed
 DEPS    ?= relint
 
-SRC  := complexity.el
+SRC  := complexity.el indent.el
 TEST := $(wildcard test/*.el)
 # Everything written in Lisp, the parts that are no package included.
-LISP := $(SRC) $(TEST) $(wildcard tools/*.el)
+LISP := $(SRC) $(TEST)
 
 # Elisp programs live in variables: make joins their continuation lines,
 # while a backslash inside a quoted recipe line would reach Emacs as is.
@@ -81,7 +81,7 @@ hook:
 # when it had to change something, which is how the hook stops a
 # commit; from make that is a job done, not a failure.
 format:
-	@$(BATCH) -l tools/indent.el $(LISP) || true
+	@$(BATCH) -l indent.el $(LISP) || true
 
 clean:
 	@rm -rf $(SANDBOX) ./*.elc test/*.elc
