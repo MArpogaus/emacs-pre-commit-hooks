@@ -15,7 +15,7 @@ jobs:
     - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97   # v7.0.0
       with:
         python-version: 3.x
-    # The local hooks call make, which calls Emacs.  Emacs 31.1, the
+    # The local hooks call make, which calls Emacs. Emacs 31.1, the
     # release the checks are written against, not whichever one the
     # runner image ships and not the older release this job used to
     # name: checkdoc up to 30.2 reports a doc string line over 80

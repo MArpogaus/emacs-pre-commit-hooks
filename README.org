@@ -21,12 +21,12 @@
 
 ** About The Project
 
-There is no complexipy for Emacs Lisp, and no ruff.  =checkdoc=,
+There is no complexipy for Emacs Lisp, and no ruff. =checkdoc=,
 =package-lint=, =relint= and the byte-compiler all say nothing about
 the shape of a function: a hundred-line =cond= inside a =dolist= inside
 a =when= passes every one of them.
 
-This is the missing check.  It scores each function by *cognitive
+This is the missing check. It scores each function by *cognitive
 complexity* — how much of it a reader has to hold at once — and fails a
 run where one function costs more than the gate.
 
@@ -55,7 +55,7 @@ Four hooks share the one repository:
 
 The complexity hook says nothing where every function is at or under
 the gate: a hook that speaks on every commit is a hook people turn
-off.  Where one is over, it prints the table and the commit stops.
+off. Where one is over, it prints the table and the commit stops.
 
 Raise or lower the gate, or ask for the table every time:
 
@@ -103,12 +103,12 @@ language-independent, read here as Lisp:
   =while=, =dolist=, =cond=, =pcase=, a =condition-case= handler, a
   =throw=.
 - A form nested inside another such form costs one more for each level
-  it is in.  Two nested =dolist= forms cost 1 + 2, not 1 + 1.
+  it is in. Two nested =dolist= forms cost 1 + 2, not 1 + 1.
 - A branch that also has an else costs one more, and a =cond= or
   =pcase= costs one for each clause after the first.
 - A run of the same operator costs one however long it is: =(and a b
   c)= costs one, =(and a (or b c))= two.
-- A sequence of plain calls costs nothing, however long.  Neither does
+- A sequence of plain calls costs nothing, however long. Neither does
   a long =let=, a long doc string, or a comment: the reader of the
   score reads code, and the reader of the code reads the prose.
 
@@ -137,7 +137,7 @@ does; =format= is not one of them, because it writes.
 ** Use of LLM Coding Tools
 
 Parts of this package were written with the help of a large
-language model (LLM) coding assistant.  A person reviewed and tested
+language model (LLM) coding assistant. A person reviewed and tested
 every change before it was committed.
 
 ** License

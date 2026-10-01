@@ -1,4 +1,4 @@
-# Development tasks.  Run `make' to check everything, as the CI does.
+# Development tasks. Run `make' to check everything, as the CI does.
 #
 #   make compile   byte-compile, warnings are errors
 #   make checkdoc  documentation style
@@ -9,7 +9,7 @@
 #   make clean     remove build output and the tool sandbox
 #
 # There is no `lint' target: this is a script rather than a package, so
-# package-lint has no main file to read.  `relint' does apply, and it
+# package-lint has no main file to read. `relint' does apply, and it
 # installs itself into $(SANDBOX), so a fresh checkout needs nothing
 # but Emacs and make.
 
@@ -65,7 +65,7 @@ checkdoc:
 
 # What checkdoc lets through: a docstring escape written \= rather than
 # \\=, which the reader eats, so `describe-function' shows the reader
-# the = as text.  Eleven of them lived here until this target did.
+# the = as text. Eleven of them lived here until this target did.
 relint: $(STAMP)
 	@$(BATCH) -l relint -f relint-batch $(SRC) $(TEST)
 
@@ -77,7 +77,7 @@ hook:
 	@EMACS=$(EMACS) ./bin/elisp-complexity --report $(SRC)
 
 # The formatter loads each file before indenting it, so a macro of this
-# repository indents its body the way its `declare' says.  It answers 1
+# repository indents its body the way its `declare' says. It answers 1
 # when it had to change something, which is how the hook stops a
 # commit; from make that is a job done, not a failure.
 format:
